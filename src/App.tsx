@@ -1,5 +1,9 @@
 import { useState } from 'react';
 
+/**
+ * The main application component.
+ * @returns {JSX.Element} The rendered application.
+ */
 export default function App() {
   const [status] = useState('Agentic AI Collaboration Protocol Activated');
   return (

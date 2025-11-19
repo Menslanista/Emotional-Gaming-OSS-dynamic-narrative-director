@@ -1,5 +1,11 @@
 import { dashboard } from '../dashboard/RealtimeDashboard';
 
+/**
+ * An interface for performance metrics.
+ * @property {object} emotionDetection - Metrics for emotion detection.
+ * @property {object} narrativeGeneration - Metrics for narrative generation.
+ * @property {object} system - System-level metrics.
+ */
 export interface PerformanceMetrics {
   emotionDetection: {
     count: number;
@@ -23,16 +29,26 @@ export interface PerformanceMetrics {
   };
 }
 
+/**
+ * A class for monitoring and reporting performance metrics.
+ */
 export class PerformanceMonitor {
   private metrics: PerformanceMetrics;
   private startTime: number;
 
+  /**
+   * Creates an instance of PerformanceMonitor.
+   */
   constructor() {
     this.startTime = Date.now();
     this.metrics = this.initializeMetrics();
     this.startPeriodicReporting();
   }
 
+  /**
+   * Initializes the performance metrics.
+   * @returns {PerformanceMetrics} The initial metrics.
+   */
   private initializeMetrics(): PerformanceMetrics {
     return {
       emotionDetection: {
@@ -58,6 +74,10 @@ export class PerformanceMonitor {
     };
   }
 
+  /**
+   * Records the duration of an emotion detection event.
+   * @param {number} duration - The duration of the event in milliseconds.
+   */
   recordEmotionDetection(duration: number): void {
     this.metrics.emotionDetection.count++;
     this.metrics.emotionDetection.totalTime += duration;
@@ -70,6 +90,11 @@ export class PerformanceMonitor {
     });
   }
 
+  /**
+   * Records the duration of a narrative generation event.
+   * @param {number} duration - The duration of the event in milliseconds.
+   * @param {boolean} [wasCached=false] - Whether the response was cached.
+   */
   recordNarrativeGeneration(duration: number, wasCached: boolean = false): void {
     this.metrics.narrativeGeneration.count++;
     this.metrics.narrativeGeneration.totalTime += duration;
@@ -88,6 +113,10 @@ export class PerformanceMonitor {
     });
   }
 
+  /**
+   * Records an API error.
+   * @param {string} errorType - The type of error that occurred.
+   */
   recordAPIError(errorType: string): void {
     const current = (this.metrics as any).apiErrors?.count || 0;
     dashboard.updatePerformanceMetrics({
@@ -99,6 +128,9 @@ export class PerformanceMonitor {
     });
   }
 
+  /**
+   * Updates the system metrics.
+   */
   updateSystemMetrics(): void {
     this.metrics.system.uptime = Date.now() - this.startTime;
 
@@ -113,6 +145,10 @@ export class PerformanceMonitor {
     });
   }
 
+  /**
+   * Gets a performance report, including recommendations.
+   * @returns {PerformanceMetrics & { recommendations: string[] }} The performance report.
+   */
   getPerformanceReport(): PerformanceMetrics & { recommendations: string[] } {
     this.updateSystemMetrics();
 

@@ -1,5 +1,16 @@
+/**
+ * The different frequency bands of EEG data.
+ */
 export type FrequencyBand = "delta" | "theta" | "alpha" | "beta" | "gamma";
 
+/**
+ * An interface representing the power of each EEG frequency band.
+ * @property {number} delta - The power of the delta band.
+ * @property {number} theta - The power of the theta band.
+ * @property {number} alpha - The power of the alpha band.
+ * @property {number} beta - The power of the beta band.
+ * @property {number} gamma - The power of the gamma band.
+ */
 export interface FrequencyBands {
   delta: number;
   theta: number;
@@ -8,6 +19,12 @@ export interface FrequencyBands {
   gamma: number;
 }
 
+/**
+ * An interface representing the emotional state of the user.
+ * @property {"FOCUSED_HIGH" | "RELAXED_CALM" | "ANXIOUS_STRESSED" | "CURIOUS_INTERESTED"} primary - The primary emotion.
+ * @property {number} intensity - The intensity of the emotion, from 0 to 1.
+ * @property {number} confidence - The confidence of the emotion detection, from 0 to 1.
+ */
 export interface EmotionState {
   primary: "FOCUSED_HIGH" | "RELAXED_CALM" | "ANXIOUS_STRESSED" | "CURIOUS_INTERESTED";
   intensity: number; // 0-1
@@ -22,7 +39,16 @@ const BAND_RANGES: Record<FrequencyBand, [number, number]> = {
   gamma: [30, 100],
 };
 
+/**
+ * A class for mapping EEG data to emotional states.
+ */
 export class EEGEmotionMapper {
+  /**
+   * Analyzes the frequency bands of a set of EEG samples.
+   * @param {number[]} eegSamples - The EEG samples to analyze.
+   * @param {number} sampleRate - The sample rate of the EEG data.
+   * @returns {FrequencyBands} The power of each frequency band.
+   */
   analyzeFrequencyBands(eegSamples: number[], sampleRate: number): FrequencyBands {
     const bands: Partial<FrequencyBands> = {};
     (Object.keys(BAND_RANGES) as FrequencyBand[]).forEach((band) => {
@@ -32,6 +58,11 @@ export class EEGEmotionMapper {
     return bands as FrequencyBands;
   }
 
+  /**
+   * Maps a set of frequency bands to an emotional state.
+   * @param {FrequencyBands} bands - The frequency bands to map.
+   * @returns {EmotionState} The emotional state.
+   */
   mapToEmotionalState(bands: FrequencyBands): EmotionState {
     const total = bands.delta + bands.theta + bands.alpha + bands.beta + bands.gamma || 1;
     const r = {

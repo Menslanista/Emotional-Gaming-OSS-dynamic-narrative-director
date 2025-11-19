@@ -1,5 +1,14 @@
 import type { FusedEmotion } from '../emotion/EmotionFusionEngine';
 
+/**
+ * An interface for the emotional context provided to the prompt engine.
+ * @property {FusedEmotion} emotion - The user's fused emotion.
+ * @property {string} storyContext - The current context of the story.
+ * @property {string} [character] - The character the user is interacting with.
+ * @property {string} [previousDialogue] - The previous line of dialogue.
+ * @property {string} [location] - The current location in the story.
+ * @property {number} [relationshipStatus] - The user's relationship status with the character.
+ */
 export interface EmotionalContext {
   emotion: FusedEmotion;
   storyContext: string;
@@ -9,6 +18,14 @@ export interface EmotionalContext {
   relationshipStatus?: number;
 }
 
+/**
+ * An interface for a prompt template.
+ * @property {string} system - The system prompt.
+ * @property {string} user - The user prompt.
+ * @property {Record<string, any>} responseFormat - The expected format of the response.
+ * @property {number} temperature - The temperature for the language model.
+ * @property {number} maxTokens - The maximum number of tokens for the language model to generate.
+ */
 export interface PromptTemplate {
   system: string;
   user: string;
@@ -17,6 +34,9 @@ export interface PromptTemplate {
   maxTokens: number;
 }
 
+/**
+ * A class for building and managing prompts for a language model.
+ */
 export class PromptEngine {
   private readonly templates: Record<string, PromptTemplate> = {
     emotional_dialogue: {
@@ -137,6 +157,12 @@ Generate a quest with: title, objective, emotionalRationale, and scientificBasis
     }
   };
 
+  /**
+   * Builds a prompt from a template and context.
+   * @param {string} templateName - The name of the template to use.
+   * @param {EmotionalContext} context - The emotional context.
+   * @returns {{ prompt: string; config: PromptTemplate }} The generated prompt and the template config.
+   */
   buildPrompt(templateName: string, context: EmotionalContext): { prompt: string; config: PromptTemplate } {
     const template = this.templates[templateName];
     if (!template) {
@@ -155,6 +181,12 @@ Generate a quest with: title, objective, emotionalRationale, and scientificBasis
     return { prompt, config: template };
   }
 
+  /**
+   * Validates a response against a template's schema.
+   * @param {any} response - The response to validate.
+   * @param {string} templateName - The name of the template to validate against.
+   * @returns {boolean} Whether the response is valid.
+   */
   validateResponse(response: any, templateName: string): boolean {
     const template = this.templates[templateName];
     if (!template?.responseFormat?.schema) return true;
@@ -194,10 +226,19 @@ Generate a quest with: title, objective, emotionalRationale, and scientificBasis
     }
   }
 
+  /**
+   * Gets the names of the available templates.
+   * @returns {string[]} The available template names.
+   */
   getAvailableTemplates(): string[] {
     return Object.keys(this.templates);
   }
 
+  /**
+   * Creates a custom prompt template.
+   * @param {string} name - The name of the template.
+   * @param {PromptTemplate} template - The template to create.
+   */
   createCustomTemplate(name: string, template: PromptTemplate): void {
     this.templates[name] = template;
   }
