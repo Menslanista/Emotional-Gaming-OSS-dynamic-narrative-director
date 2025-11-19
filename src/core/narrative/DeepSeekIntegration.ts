@@ -1,22 +1,47 @@
+/**
+ * An interface for the emotional context provided to the DeepSeek API.
+ * @property {object} emotion - The user's emotion.
+ * @property {string} emotion.primary - The primary emotion.
+ * @property {number} emotion.intensity - The intensity of the emotion.
+ * @property {string} storyContext - The current context of the story.
+ */
 export interface EmotionalContext {
   emotion: { primary: string; intensity: number };
   storyContext: string;
 }
 
+/**
+ * An interface for the narrative response from the DeepSeek API.
+ * @property {string} dialogue - The generated dialogue.
+ * @property {string} tone - The tone of the dialogue.
+ * @property {string} impact - The impact of the dialogue on the narrative.
+ */
 export interface NarrativeResponse {
   dialogue: string;
   tone: string;
   impact: string;
 }
 
+/**
+ * A class for integrating with the DeepSeek API to generate narrative content.
+ */
 export class DeepSeekIntegration {
   private readonly apiKey: string | undefined;
   private readonly baseURL = 'https://api.deepseek.com/v1';
 
+  /**
+   * Creates an instance of DeepSeekIntegration.
+   * @param {string} [apiKey] - The DeepSeek API key.
+   */
   constructor(apiKey?: string) {
     this.apiKey = apiKey ?? process.env.DEEPSEEK_API_KEY;
   }
 
+  /**
+   * Generates emotionally congruent dialogue using the DeepSeek API.
+   * @param {EmotionalContext} context - The emotional context.
+   * @returns {Promise<NarrativeResponse>} The generated narrative response.
+   */
   async generateEmotionalDialogue(context: EmotionalContext): Promise<NarrativeResponse> {
     if (!this.apiKey) {
       return this.getFallbackResponse(context);

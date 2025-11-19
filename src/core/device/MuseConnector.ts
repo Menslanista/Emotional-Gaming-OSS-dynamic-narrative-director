@@ -1,3 +1,10 @@
+/**
+ * Represents a single EEG sample.
+ * @property {number} timestamp - The time the sample was received.
+ * @property {number[]} channels - The EEG channel data.
+ * @property {DataView} raw - The raw data from the device.
+ * @property {number} [sequence] - The sequence number of the sample.
+ */
 export type EEGSample = {
   timestamp: number;
   channels: number[];
@@ -5,6 +12,15 @@ export type EEGSample = {
   sequence?: number;
 };
 
+/**
+ * Configuration for the MuseConnector.
+ * @property {string} [deviceNamePrefix] - The prefix of the device name to filter by.
+ * @property {BluetoothServiceUUID} [serviceUUID] - The UUID of the Bluetooth service.
+ * @property {BluetoothCharacteristicUUID[]} [eegCharacteristicUUIDs] - The UUIDs of the EEG characteristics.
+ * @property {boolean} [enableMock] - Whether to enable the mock stream.
+ * @property {number} [mockSampleRate] - The sample rate of the mock stream in Hz.
+ * @property {number} [mockChannels] - The number of channels for the mock stream.
+ */
 export interface MuseConnectorConfig {
   deviceNamePrefix?: string;
   serviceUUID?: BluetoothServiceUUID;
@@ -14,6 +30,9 @@ export interface MuseConnectorConfig {
   mockChannels?: number; // number of EEG channels to emit
 }
 
+/**
+ * A class for connecting to and streaming data from a Muse EEG device.
+ */
 export class MuseConnector {
   private config: Required<MuseConnectorConfig>;
   private device: BluetoothDevice | null = null;
@@ -23,6 +42,10 @@ export class MuseConnector {
   private mockTimer: number | null = null;
   private mockSequence = 0;
 
+  /**
+   * Creates an instance of MuseConnector.
+   * @param {MuseConnectorConfig} [config] - The configuration for the connector.
+   */
   constructor(config?: MuseConnectorConfig) {
     const defaults: Required<MuseConnectorConfig> = {
       deviceNamePrefix: 'Muse',
@@ -35,23 +58,43 @@ export class MuseConnector {
     this.config = { ...defaults, ...(config || {}) };
   }
 
+  /**
+   * Checks if Web Bluetooth is available in the current environment.
+   * @returns {boolean} Whether Web Bluetooth is available.
+   */
   static isAvailable(): boolean {
     // Web Bluetooth is only available in secure contexts and certain browsers
     return typeof navigator !== 'undefined' && !!(navigator as any).bluetooth;
   }
 
+  /**
+   * Registers a handler for EEG samples.
+   * @param {(sample: EEGSample) => void} handler - The handler to register.
+   */
   onSample(handler: (sample: EEGSample) => void): void {
     this.listeners.add(handler);
   }
 
+  /**
+   * Unregisters a handler for EEG samples.
+   * @param {(sample: EEGSample) => void} handler - The handler to unregister.
+   */
   offSample(handler: (sample: EEGSample) => void): void {
     this.listeners.delete(handler);
   }
 
+  /**
+   * Emits an EEG sample to all registered listeners.
+   * @param {EEGSample} sample - The sample to emit.
+   */
   private emit(sample: EEGSample): void {
     for (const handler of this.listeners) handler(sample);
   }
 
+  /**
+   * Requests a device and connects to it.
+   * @returns {Promise<void>}
+   */
   async requestAndConnect(): Promise<void> {
     if (!MuseConnector.isAvailable()) {
       if (this.config.enableMock) {
@@ -110,11 +153,18 @@ export class MuseConnector {
     this.emit(sample);
   };
 
+  /**
+   * Handles the disconnection of the GATT server.
+   */
   private handleDisconnect = (): void => {
     this.server = null;
     this.characteristics = [];
   };
 
+  /**
+   * Disconnects from the device.
+   * @returns {Promise<void>}
+   */
   async disconnect(): Promise<void> {
     if (this.device && this.device.gatt && this.device.gatt.connected) {
       this.device.gatt.disconnect();
@@ -141,6 +191,9 @@ export class MuseConnector {
     };
   }
 
+  /**
+   * Starts a mock stream of EEG data.
+   */
   // Mock stream for non-browser/testing environments
   startMockStream(): void {
     if (this.mockTimer !== null) return;
@@ -163,6 +216,9 @@ export class MuseConnector {
     }, intervalMs) as unknown) as number;
   }
 
+  /**
+   * Stops the mock stream of EEG data.
+   */
   stopMockStream(): void {
     if (this.mockTimer !== null) {
       clearInterval(this.mockTimer as any);
