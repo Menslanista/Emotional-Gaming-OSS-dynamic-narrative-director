@@ -1,0 +1,72 @@
+import { describe, it, expect } from 'vitest';
+import { DeepSeekNormalizationAdapter } from '../DeepSeekIntegration';
+
+describe('Accuracy Tests - Normalization Adapter', () => {
+  it('should preserve response metadata field names', () => {
+    const adapter = new DeepSeekNormalizationAdapter();
+    
+    const response = {
+      dialogue: 'Test response',
+      tone: 'neutral',
+      impact: 'stabilize',
+      optionalFields: {
+        metadata: { responseTime: 250, model: 'deepseek-chat' },
+        confidence: 0.95,
+        suggestions: ['suggestion1', 'suggestion2'],
+      },
+    };
+
+    const normalized = adapter.normalizeResponse(response);
+    
+    // These fields should be preserved exactly as-is
+    expect(normalized.optionalFields?.metadata).toEqual({ responseTime: 250, model: 'deepseek-chat' });
+    expect(normalized.optionalFields?.confidence).toBe(0.95);
+    expect(normalized.optionalFields?.suggestions).toEqual(['suggestion1', 'suggestion2']);
+  });
+
+  it('should normalize context field names correctly', () => {
+    const adapter = new DeepSeekNormalizationAdapter();
+    
+    const context = {
+      emotion: { primary: 'focused', intensity: 0.8 },
+      storyContext: 'Test context',
+      optionalFields: {
+        bossName: 'Ancient Dragon',
+        playerHealth: 100,
+        fightPhase: 'final',
+      },
+    };
+
+    const normalized = adapter.normalizeContext(context);
+    
+    // Context fields should be normalized for the prompt (lowercase with underscores)
+    expect(normalized.optionalFields?.boss_name).toBe('Ancient Dragon');
+    expect(normalized.optionalFields?.player_health).toBe(100);
+    expect(normalized.optionalFields?.fight_phase).toBe('final');
+  });
+
+  it('should handle fallback response with original field names', () => {
+    const integration = new DeepSeekIntegration(); // No API key
+    
+    const context = {
+      emotion: { primary: 'focused', intensity: 0.8 },
+      storyContext: 'Test context',
+      optionalFields: {
+        bossName: 'Ancient Dragon',
+        playerHealth: 100,
+        fightPhase: 'final',
+      },
+    };
+
+    // In fallback response, original field names should be preserved in contextFields
+    return integration.generateEmotionalDialogue(context).then(response => {
+      expect(response.optionalFields).toBeDefined();
+      expect(response.optionalFields?.fallback).toBe(true);
+      expect(response.optionalFields?.contextFields).toEqual({
+        bossName: 'Ancient Dragon',
+        playerHealth: 100,
+        fightPhase: 'final',
+      });
+    });
+  });
+});
